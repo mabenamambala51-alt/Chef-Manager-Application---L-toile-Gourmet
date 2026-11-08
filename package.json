@@ -1,0 +1,20 @@
+{
+  "name": "chef-management-application",
+  "version": "1.0.0",
+  "description": "A modern web application for chef managers to update existing dishes or create new dishes in real-time.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "chef",
+    "restaurant",
+    "menu-management",
+    "food",
+    "dishes",
+    "dashboard"
+  ],
+  "author": "L'Étoile Gourmet Tech",
+  "license": "MIT"
+}
