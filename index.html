@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chef Manager Portal | L'Étoile Gourmet</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-dark">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="brand-logo">
+        <i class="fa-solid fa-utensils logo-icon"></i>
+        <div class="brand-text">
+          <h1>L'Étoile Gourmet</h1>
+          <span class="sub-title" id="portalSubTitle">Chef Manager Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Navigation Actions -->
+      <div class="header-actions">
+        <button id="viewToggleBtn" class="btn btn-outline" title="Switch between Chef Dashboard & Live Customer Menu">
+          <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Customer Menu</span>
+        </button>
+
+        <button id="addNewDishBtn" class="btn btn-primary auth-only">
+          <i class="fa-solid fa-plus"></i> Add New Dish
+        </button>
+
+        <div class="user-profile-widget" id="userProfileWidget">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CHEF MANAGER PORTAL CONTENT -->
+  <main class="app-main" id="chefDashboardView">
+    <div class="container">
+
+      <!-- LOGIN BANNER FOR NON-LOGGED IN USERS -->
+      <div id="loginBanner" class="guest-banner" style="display: none;">
+        <div class="banner-content">
+          <i class="fa-solid fa-user-lock banner-icon"></i>
+          <div>
+            <h3>Chef Manager Authentication Required</h3>
+            <p>Log in as Chef Manager to create, update, or manage dishes in real-time. Demo credentials: <code>chef@gourmet.com</code> / <code>chef123</code></p>
+          </div>
+        </div>
+        <button id="bannerLoginBtn" class="btn btn-accent"><i class="fa-solid fa-key"></i> Log In Now</button>
+      </div>
+
+      <!-- STATS OVERVIEW CARDS -->
+      <section class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-icon icon-total"><i class="fa-solid fa-bowl-food"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statTotalDishes">0</span>
+            <span class="stat-label">Total Dishes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-active"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statActiveDishes">0</span>
+            <span class="stat-label">Available Items</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-stockout"><i class="fa-solid fa-ban"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statOutOfStock">0</span>
+            <span class="stat-label">Out of Stock</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-featured"><i class="fa-solid fa-star"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statFeaturedDishes">0</span>
+            <span class="stat-label">Chef Specials</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTROL BAR: SEARCH, FILTERS, VIEW TOGGLES -->
+      <section class="controls-section">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="searchInput" aria-label="Search dishes by name or ingredients" placeholder="Search dishes by name or ingredients..." autocomplete="off">
+          <button id="clearSearchBtn" class="btn-icon" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="filter-controls">
+          <!-- Availability Filter -->
+          <div class="select-wrapper">
+            <select id="statusFilterSelect">
+              <option value="all">All Availability</option>
+              <option value="available">In Stock Only</option>
+              <option value="unavailable">Out of Stock</option>
+              <option value="featured">Chef Specials Only</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="select-wrapper">
+            <select id="sortSelect">
+              <option value="newest">Sort: Newest First</option>
+              <option value="name-asc">Sort: Name (A-Z)</option>
+              <option value="price-asc">Sort: Price (Low to High)</option>
+              <option value="price-desc">Sort: Price (High to Low)</option>
+              <option value="preptime">Sort: Prep Time</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+
+          <!-- View Layout Mode Toggle -->
+          <div class="view-mode-toggle">
+            <button id="gridViewBtn" class="btn-layout active" title="Grid View"><i class="fa-solid fa-grip"></i></button>
+            <button id="tableViewBtn" class="btn-layout" title="Table View"><i class="fa-solid fa-list-check"></i></button>
+          </div>
+
+          <!-- Reset Menu Button -->
+          <button id="resetMenuBtn" class="btn btn-secondary auth-only" title="Reset sample menu to default state">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
+      </section>
+
+      <!-- CATEGORY TABS -->
+      <nav class="category-tabs" id="categoryTabs">
+        <button class="cat-tab active" data-category="All">All Categories</button>
+        <button class="cat-tab" data-category="Starters"><i class="fa-solid fa-seedling"></i> Starters</button>
+        <button class="cat-tab" data-category="Mains"><i class="fa-solid fa-drumstick-bite"></i> Mains</button>
+        <button class="cat-tab" data-category="Desserts"><i class="fa-solid fa-ice-cream"></i> Desserts</button>
+        <button class="cat-tab" data-category="Beverages"><i class="fa-solid fa-martini-glass-citrus"></i> Beverages</button>
+        <button class="cat-tab" data-category="Specials"><i class="fa-solid fa-award"></i> Chef Specials</button>
+      </nav>
+
+      <!-- DISHES LIST CONTAINER -->
+      <section id="dishesGridContainer" class="dishes-grid">
+        <!-- Rendered by JS -->
+      </section>
+
+      <!-- TABLE VIEW CONTAINER (Hidden by default) -->
+      <section id="dishesTableContainer" class="table-container" style="display: none;">
+        <table class="dishes-table">
+          <thead>
+            <tr>
+              <th>Dish</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Dietary</th>
+              <th>Prep Time</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dishesTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- EMPTY STATE -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fa-solid fa-plate-wheat empty-icon"></i>
+        <h3>No Dishes Found</h3>
+        <p>No dishes match your search or filter criteria. Try adjusting your search term or add a new dish.</p>
+        <button id="emptyStateAddBtn" class="btn btn-primary auth-only"><i class="fa-solid fa-plus"></i> Add New Dish</button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- CUSTOMER DIGITAL MENU VIEW (Toggleable) -->
+  <div id="customerMenuView" class="customer-menu-view" style="display: none;">
+    <div class="customer-hero">
+      <div class="hero-overlay">
+        <h2>L'Étoile Gourmet Menu</h2>
+        <p>Exquisite culinary creations crafted with passion and fresh seasonal ingredients.</p>
+        <div class="hero-badge"><i class="fa-solid fa-circle-dot live-pulse"></i> Live Chef Managed Menu</div>
+      </div>
+    </div>
+
+    <div class="container customer-content">
+      <div class="customer-filters" id="customerCategoryNav">
+        <!-- Category navigation for customer -->
+      </div>
+      <div id="customerDishesContainer" class="customer-dishes-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-gear"></i> Chef Manager Login</h3>
+        <button class="btn-close closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="loginForm">
+        <div class="modal-body">
+          <div class="demo-credentials-box">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Quick Demo Access:</strong><br>
+              Email: <code>chef@gourmet.com</code> | Password: <code>chef123</code>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginEmail">Email Address or Username</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="text" id="loginEmail" required value="chef@gourmet.com" placeholder="chef@gourmet.com">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="loginPassword" required value="chef123" placeholder="Enter password">
+            </div>
+          </div>
+
+          <div class="form-checkbox">
+            <input type="checkbox" id="rememberMe" checked>
+            <label for="rememberMe">Remember login on this browser</label>
+          </div>
+
+          <div id="loginErrorMsg" class="error-msg" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary closeModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Sign In to Dashboard</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADD / EDIT DISH MODAL -->
+  <div class="modal-overlay" id="dishModal">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h3 id="dishModalTitle"><i class="fa-solid fa-utensils"></i> Add New Dish</h3>
+        <button class="btn-close closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="dishForm">
+        <input type="hidden" id="dishFormId" value="">
+
+        <div class="modal-body form-grid">
+          <!-- Left Column -->
+          <div class="form-col">
+            <div class="form-group">
+              <label for="dishName">Dish Name <span class="required">*</span></label>
+              <input type="text" id="dishName" required placeholder="e.g., Truffle & Mushroom Risotto">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dishCategory">Category <span class="required">*</span></label>
+                <select id="dishCategory" required>
+                  <option value="Starters">Starters</option>
+                  <option value="Mains" selected>Mains</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Specials">Chef Specials</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="dishPrice">Price ($) <span class="required">*</span></label>
+                <input type="number" id="dishPrice" step="0.50" min="0" required placeholder="24.50">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dishPrepTime">Prep Time (mins)</label>
+                <input type="number" id="dishPrepTime" min="1" max="180" value="20" placeholder="20">
+              </div>
+
+              <div class="form-group">
+                <label for="dishCalories">Calories (kcal)</label>
+                <input type="number" id="dishCalories" min="0" max="3000" value="450" placeholder="450">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="dishDescription">Description <span class="required">*</span></label>
+              <textarea id="dishDescription" rows="3" required placeholder="Describe flavor profiles, cooking techniques, or pairing suggestions..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="dishIngredients">Key Ingredients <span class="hint">(Comma separated)</span></label>
+              <input type="text" id="dishIngredients" placeholder="e.g., Truffle, Arborio Rice, Parmesan, Thyme">
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="form-col">
+            <div class="form-group">
+              <label>Dietary Labels</label>
+              <div class="dietary-checkboxes">
+                <label class="chip-checkbox">
+                  <input type="checkbox" value="Vegetarian" class="dietary-check">
+                  <span>🥬 Vegetarian</span>
+                </label>
+                <label class="chip-checkbox">
+                  <input type="checkbox" value="Vegan" class="dietary-check">
+                  <span>🌱 Vegan</span>
+                </label>
+                <label class="chip-checkbox">
+                  <input type="checkbox" value="Gluten-Free" class="dietary-check">
+                  <span>🌾 Gluten-Free</span>
+                </label>
+                <label class="chip-checkbox">
+                  <input type="checkbox" value="Contains Nuts" class="dietary-check">
+                  <span>🥜 Contains Nuts</span>
+                </label>
+                <label class="chip-checkbox">
+                  <input type="checkbox" value="Spicy" class="dietary-check">
+                  <span>🌶️ Spicy</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="dishImage">Image URL</label>
+              <input type="url" id="dishImage" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            <div class="preset-images-wrapper">
+              <label class="small-label">Quick Image Presets:</label>
+              <div class="preset-buttons" id="presetImageButtons">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <div class="image-preview-container">
+              <img id="imagePreview" src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80" alt="Preview">
+            </div>
+
+            <div class="form-toggles">
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="dishAvailable" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-text"><i class="fa-solid fa-store"></i> In Stock & Available to Order</span>
+              </label>
+
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="dishFeatured">
+                <span class="toggle-slider"></span>
+                <span class="toggle-text"><i class="fa-solid fa-star"></i> Highlight as Chef Special</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary closeModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveDishBtn"><i class="fa-solid fa-check"></i> Save Dish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: DELETE CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-card modal-small">
+      <div class="modal-header header-danger">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Delete Dish</h3>
+        <button class="btn-close closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteDishName">this dish</strong>?</p>
+        <p class="text-subtle">This action cannot be undone. The dish will be removed from both the chef portal and customer menus.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary closeModalBtn">Cancel</button>
+        <button type="button" id="confirmDeleteBtn" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i> Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- SCRIPT INCLUSIONS -->
+  <script src="js/dishes-data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
